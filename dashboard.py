@@ -44,6 +44,7 @@ def create_byweathersit(df):
 
     return byweathersit_df
 
+#sesuaikan dengan folder yang dimiliki
 hari_df = pd.read_csv('dashboard/hari_file.xls')
 jam_df = pd.read_csv('dashboard/jam_file.xls')
 
