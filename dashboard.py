@@ -47,7 +47,6 @@ def create_byweathersit(df):
 hari_df = pd.read_csv('dashboard/hari_file.xls')
 jam_df = pd.read_csv('dashboard/jam_file.xls')
 
-
 min_date = hari_df["dteday"].min()
 max_date = hari_df["dteday"].max()
  
