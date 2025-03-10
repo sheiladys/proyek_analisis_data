@@ -44,8 +44,8 @@ def create_byweathersit(df):
 
     return byweathersit_df
 
-hari_df = pd.read_csv('dashboard/hari_file.xls')
-jam_df = pd.read_csv('dashboard/jam_file.xls')
+hari_df = pd.read_csv("D:\DBS Codiing Camp\proyek_akhir\dashboard\hari_file.xls")
+jam_df = pd.read_csv("D:\DBS Codiing Camp\proyek_akhir\dashboard\jam_file.xls")
 
 
 min_date = hari_df["dteday"].min()
