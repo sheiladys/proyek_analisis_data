@@ -17,7 +17,7 @@ def create_byseasonday_df(df):
 
 
 def create_byweekday_df(df):
-    byweekday_df = jam_df.groupby(by='weekday')['cnt'].mean().reset_index()
+    byweekday_df = df.groupby(by='weekday')['cnt'].mean().reset_index()
     byweekday_df.rename(columns={
         'cnt': 'rata_sewa'
     }, inplace=True)
@@ -37,7 +37,7 @@ def create_byhour_df(df):
     return highest
 
 def create_byweathersit(df):
-    byweathersit_df = jam_df.groupby(by='weathersit')['cnt'].mean().reset_index()
+    byweathersit_df = df.groupby(by='weathersit')['cnt'].mean().reset_index()
     byweathersit_df.rename(columns={
         'cnt': 'mean_sewa'
     }, inplace=True)
@@ -48,8 +48,18 @@ hari_df = pd.read_csv('dashboard/hari_file.xls')
 jam_df = pd.read_csv('dashboard/jam_file.xls')
 
 
-min_date = hari_df["dteday"].min()
-max_date = hari_df["dteday"].max()
+jam_df['dteday'] = pd.to_datetime(jam_df['dteday'])
+
+min_date = jam_df["dteday"].min()
+max_date = jam_df["dteday"].max()
+
+datetime_columns = ['dteday']
+jam_df.sort_values(by="dteday", inplace=True)
+jam_df.reset_index(inplace=True)
+ 
+for column in datetime_columns:
+    jam_df[column] = pd.to_datetime(jam_df[column])
+
  
 with st.sidebar:
     # Menambahkan logo perusahaan
@@ -62,11 +72,23 @@ with st.sidebar:
         """
     )
 
-byseasonday_df = create_byseasonday_df(hari_df)
-byweekday_df = create_byweekday_df(jam_df)
-byhour_df = create_byhour_df(jam_df)
+    start_date, end_date = st.date_input(
+        label='Rentang Waktu',min_value=min_date,
+        max_value=max_date,
+        value=[min_date, max_date]
+    )
+
+start_date = pd.to_datetime(start_date)
+end_date = pd.to_datetime(end_date)
+
+main_df = jam_df[(jam_df["dteday"] >= start_date) &  
+                 (jam_df["dteday"] <= end_date)] 
+
+byweekday_df = create_byweekday_df(main_df)
+byhour_df = create_byhour_df(main_df)
 highest = byhour_df.sort_values(by='hr')
-byweathersit_df = create_byweathersit(jam_df)
+byweathersit_df = create_byweathersit(main_df)
+byseasonday_df = create_byseasonday_df(main_df)
 
 season_labels = {1:'Semi', 2:'Panas', 3:'Gugur', 4:'Dingin'}
 byseasonday_df['season'] = byseasonday_df['season'].replace(season_labels)
@@ -83,10 +105,10 @@ with col1:
     st.write("")
     st.write("")
     st.write("")
-    total_rentals = hari_df.cnt.sum()
+    total_rentals = main_df.cnt.sum()
     st.metric("Total Penyewaan", value=total_rentals)
     st.write("")
-    avg_rentals = hari_df.cnt.mean()
+    avg_rentals = main_df.cnt.mean()
     st.metric("Average Penyewaan", value=f"{avg_rentals:.2f}")
 
 with col2:
@@ -134,6 +156,8 @@ with col3:
 
 with col4:
     fig, ax = plt.subplots(figsize=(20, 15))
+
+    sorted_hour = byhour_df.sort_values(by='hr')
 
     ax.plot(
         highest['hr'],
